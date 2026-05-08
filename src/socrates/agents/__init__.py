@@ -1,1 +1,1 @@
-"""SOCrates agents — Scout, Chaos Gremlin, and Coroner."""
+"""SOCrates agents — Scout, Chaos Adversary, and Coroner."""

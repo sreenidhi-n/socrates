@@ -29,3 +29,7 @@ src/socrates/output/*.json
 
 # Obsidian symlinks (if used)
 docs/hackathon-docs
+
+# Claude Code
+CLAUDE.md
+.claude/

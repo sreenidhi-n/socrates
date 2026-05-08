@@ -1,16 +1,96 @@
 """SOCrates Crew — The autonomous SOC analyst pipeline.
 
-Orchestrates Scout → Chaos Gremlin → Coroner in a sequential pipeline.
+Orchestrates Scout → Adversary → Coroner in a sequential pipeline.
 """
+
+import queue
+import re
+import threading
+from collections.abc import Generator
+from typing import Any, Optional
 
 from crewai import Crew, Task
 
 from socrates.agents.coroner import create_coroner
-from socrates.agents.gremlin import create_gremlin
+from socrates.agents.adversary import create_adversary
 from socrates.agents.scout import create_scout
 
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
-def build_crew(cve_query: str) -> Crew:
+# Map tool names to human-readable narrative labels
+_TOOL_LABELS = {
+    "nvd_cve_search": "NVD API",
+    "mitre_attack_lookup": "MITRE ATT&CK",
+    "threat_actor_lookup": "Threat Actor DB",
+}
+
+# Map agent role substrings to display names
+_AGENT_LABELS = {
+    "scout": "🔍 Scout",
+    "attack path": "☠️ Adversary",
+    "incident": "📋 Coroner",
+    "coroner": "📋 Coroner",
+    "adversary": "☠️ Adversary",
+}
+
+
+def _agent_label(output: Any) -> str:
+    """Try to extract a friendly agent name from the step output."""
+    try:
+        agent_str = str(getattr(output, "agent", "") or "").lower()
+        for key, label in _AGENT_LABELS.items():
+            if key in agent_str:
+                return label
+    except Exception:
+        pass
+    return "Agent"
+
+
+def _format_step(output: Any) -> str:
+    """Format a CrewAI step output as a readable narrative trace line."""
+    try:
+        if hasattr(output, "tool") and hasattr(output, "tool_input"):
+            tool_name = getattr(output, "tool", "tool")
+            tool_input = str(getattr(output, "tool_input", "")).strip()[:120]
+            label = _TOOL_LABELS.get(tool_name, tool_name)
+            agent = _agent_label(output)
+
+            # Extract a one-line thought if present (first non-empty line)
+            log = _ANSI_RE.sub("", getattr(output, "log", "") or "").strip()
+            thought_lines = [l.strip() for l in log.splitlines() if l.strip()]
+            thought = thought_lines[0][:200] if thought_lines else ""
+
+            text = f"{agent} → calling **{label}** with `{tool_input}`"
+            if thought:
+                text += f"\n  _{thought}_"
+
+        elif hasattr(output, "return_values"):
+            agent = _agent_label(output)
+            # Show a short preview of the result, not the whole thing
+            val = str(output.return_values).strip()
+            val = _ANSI_RE.sub("", val)
+            preview = val[:300].replace("\n", " ")
+            text = f"{agent} → ✅ **done** — _{preview}{'...' if len(val) > 300 else ''}_"
+
+        else:
+            # Raw string output — clean and truncate
+            raw = _ANSI_RE.sub("", str(output)).strip()
+            # Skip pure ANSI noise
+            if not raw or len(raw) < 5:
+                return ""
+            text = raw[:400]
+
+    except Exception:
+        text = _ANSI_RE.sub("", str(output))[:400]
+
+    return text.strip()
+
+
+def build_crew(
+    cve_query: str,
+    task_callback: Optional[Any] = None,
+    step_callback: Optional[Any] = None,
+) -> Crew:
     """Build the SOCrates crew for a given CVE query.
 
     Args:
@@ -21,7 +101,7 @@ def build_crew(cve_query: str) -> Crew:
     """
     # Create agents
     scout = create_scout()
-    gremlin = create_gremlin()
+    adversary = create_adversary()
     coroner = create_coroner()
 
     # Define tasks
@@ -50,6 +130,13 @@ def build_crew(cve_query: str) -> Crew:
             "Based on the threat intelligence brief provided by the Scout, "
             "simulate a realistic attack path that an adversary would take to exploit "
             "this vulnerability.\n\n"
+            "**Step 0 — Threat Actor Profiling:**\n"
+            "Use the threat_actor_lookup tool with the affected vendor/product name from Scout's brief "
+            "(e.g., 'fortinet', 'palo alto', 'cisco', 'microsoft exchange'). "
+            "Include a **Threat Actor Context** section at the top of your kill chain. "
+            "List which APT groups and criminal actors are associated with this vendor/product "
+            "based on their documented MITRE ATT&CK profiles — note their typical objectives "
+            "(espionage vs. ransomware vs. destructive) and how that shapes likely post-exploitation goals.\n\n"
             "Walk through each phase of the kill chain:\n"
             "1. **Initial Access** — How would an attacker first exploit this vulnerability?\n"
             "2. **Execution** — What would they execute on the target system?\n"
@@ -57,17 +144,26 @@ def build_crew(cve_query: str) -> Crew:
             "4. **Privilege Escalation** — How would they elevate permissions?\n"
             "5. **Lateral Movement** — How would they spread through the network?\n"
             "6. **Impact** — What is the worst-case outcome?\n\n"
-            "For each step, provide:\n"
+            "**CVE Chaining:**\n"
+            "After the kill chain phases, add a **Chained Attack Scenarios** section. "
+            "Reason about what class of secondary vulnerability an attacker would chain next — "
+            "for example: after gaining a web shell on a perimeter appliance, what local privilege "
+            "escalation CVEs would they look for? What lateral movement vectors does this initial "
+            "foothold enable? Be specific about the post-exploitation objectives.\n\n"
+            "For each kill chain step, provide:\n"
             "- The specific technique or method\n"
+            "- **Real-world tools** an adversary would use at this step — name them explicitly "
+            "(e.g. Sliver, Cobalt Strike, Metasploit, Mimikatz, CrackMapExec, Impacket, "
+            "BloodHound, Chisel, frp, nc, curl, wget, PowerShell Empire, etc.)\n"
             "- Confidence level (HIGH/MEDIUM/LOW) that this step is feasible\n"
             "- Prerequisites for this step\n\n"
-            "Think like an attacker. Be specific and realistic."
+            "Think like an attacker. Be specific and realistic — name the tools, name the commands."
         ),
         expected_output=(
             "A detailed simulated kill chain in Markdown format with each phase, "
             "specific techniques, confidence scores, and prerequisites."
         ),
-        agent=gremlin,
+        agent=adversary,
     )
 
     report_task = Task(
@@ -81,41 +177,168 @@ def build_crew(cve_query: str) -> Crew:
             "   - Use the MITRE ATT&CK lookup tool to find matching techniques\n"
             "   - Map each kill chain step to specific ATT&CK technique IDs\n"
             "4. **Impact Assessment** — Blast radius, potential damage\n"
-            "5. **Detection Recommendations** — How to detect this attack\n"
-            "   - Include pseudo-detection rules (Sigma-style or YARA-style)\n"
-            "6. **Remediation Steps** — Priority-ordered actions to take\n"
+            "5. **Detection Rules** — Write ONE valid Sigma detection rule targeting the most\n"
+            "   detectable step of the kill chain (e.g. initial exploitation, web shell drop,\n"
+            "   or reverse shell callback). The rule MUST be valid Sigma YAML inside a\n"
+            "   fenced code block and include ALL of these fields:\n"
+            "   ```yaml\n"
+            "   title: <specific descriptive title for this CVE>\n"
+            "   id: <generate a random UUID v4, e.g. 3f4a1b2c-d5e6-7890-abcd-ef1234567890>\n"
+            "   status: experimental\n"
+            "   description: <one sentence on what this detects>\n"
+            "   references:\n"
+            "       - https://nvd.nist.gov/vuln/detail/<CVE-ID>\n"
+            "   author: SOCrates\n"
+            "   tags:\n"
+            "       - attack.<technique_id_lowercase>   # ONLY technique IDs, e.g. attack.t1190\n"
+            "       # DO NOT use tactic names like attack.initial_access — those are invalid\n"
+            "   logsource:\n"
+            "       product: <vendor product>      # e.g. palo-alto, fortinet, windows\n"
+            "       service: <service>             # e.g. globalprotect, firewall, sysmon\n"
+            "   detection:\n"
+            "       selection:\n"
+            "           <FieldName>: '<specific value matching exploitation pattern>'\n"
+            "       condition: selection\n"
+            "   falsepositives:\n"
+            "       - Unknown\n"
+            "   level: critical\n"
+            "   ```\n"
+            "   Base the detection fields on the CVE's actual exploitation pattern from\n"
+            "   Scout's intel — not generic placeholders.\n"
+            "6. **Remediation Steps** — Priority-ordered actions. For EACH step, prefix it with "
+            "an effort/impact label using this format:\n"
+            "   - 🟢 **Quick win (< 1 hr):** <action> — e.g. apply vendor patch, block IP\n"
+            "   - 🟡 **Medium effort (2–8 hrs):** <action> — e.g. rotate credentials, audit logs\n"
+            "   - 🔴 **Heavy lift (days):** <action> — e.g. network re-segmentation, full rebuild\n"
+            "   Order by: quick wins first, then medium, then heavy. At least 5 steps total.\n"
             "7. **References** — Links to advisories and resources\n\n"
-            "Write for both technical and executive audiences. Be actionable."
+            "Write for both technical and executive audiences. Be actionable.\n"
+            "Cross-check the Adversary's kill chain against Scout's reported attackVector and\n"
+            "privilegesRequired — flag any inconsistencies explicitly."
         ),
         expected_output=(
             "A complete incident response report in Markdown format with MITRE ATT&CK "
-            "mappings, detection rules, and remediation recommendations."
+            "mappings, one valid Sigma YAML detection rule, and remediation steps."
         ),
         agent=coroner,
     )
 
     # Build the crew
     crew = Crew(
-        agents=[scout, gremlin, coroner],
+        agents=[scout, adversary, coroner],
         tasks=[intel_task, killchain_task, report_task],
         verbose=True,
+        task_callback=task_callback,
+        step_callback=step_callback,
     )
 
     return crew
 
 
 def run(cve_query: str) -> str:
-    """Run the full SOCrates pipeline for a CVE query.
-
-    Args:
-        cve_query: A CVE ID or search keyword.
-
-    Returns:
-        The final incident response report as a string.
-    """
+    """Run the full SOCrates pipeline and return the final IR report."""
     crew = build_crew(cve_query)
     result = crew.kickoff()
     return str(result)
+
+
+def run_detailed(cve_query: str) -> tuple[str, str, str]:
+    """Run the full SOCrates pipeline and return each agent's output separately.
+
+    Returns:
+        Tuple of (scout_intel, kill_chain, ir_report)
+    """
+    crew = build_crew(cve_query)
+    result = crew.kickoff()
+    outputs = result.tasks_output or []
+
+    def _get(idx: int) -> str:
+        return str(outputs[idx]) if idx < len(outputs) else ""
+
+    return _get(0), _get(1), _get(2)
+
+
+def run_streaming(
+    cve_query: str,
+) -> Generator[tuple[str, str, str, dict | None, str], None, None]:
+    """Run the pipeline, yielding (scout, adversary, coroner, metrics, trace) as agents work.
+
+    - First three elements update when each agent's task completes.
+    - Fourth element is None during the run, then a metrics dict on the final yield.
+    - Fifth element is the accumulated agent reasoning trace, updated on every step.
+    """
+    import time as _time
+
+    q: queue.Queue = queue.Queue()
+    outputs = ["", "", ""]
+    completed = 0
+    trace_lines: list[str] = []
+
+    _HANDOFF_MSGS = [
+        "🔍 **Scout** finished intel gathering → handing brief to ☠️ Adversary",
+        "☠️ **Chaos Adversary** finished kill chain simulation → handing to 📋 Coroner",
+        "📋 **Coroner** finished IR report → analysis complete ✅",
+    ]
+
+    def _on_task(task_output: Any) -> None:
+        nonlocal completed
+        # Insert a narrative handoff line between agents
+        handoff = _HANDOFF_MSGS[completed] if completed < len(_HANDOFF_MSGS) else ""
+        q.put({"type": "task", "content": str(task_output), "handoff": handoff})
+
+    def _on_step(step_output: Any) -> None:
+        line = _format_step(step_output)
+        if line:
+            q.put({"type": "trace", "line": line})
+
+    def _run() -> None:
+        start = _time.perf_counter()
+        try:
+            crew = build_crew(cve_query, task_callback=_on_task, step_callback=_on_step)
+            result = crew.kickoff()
+            elapsed = _time.perf_counter() - start
+            tokens = 0
+            if hasattr(result, "token_usage") and result.token_usage:
+                tokens = getattr(result.token_usage, "total_tokens", 0)
+            q.put({"type": "metrics", "elapsed": elapsed, "tokens": tokens})
+        except Exception as exc:
+            q.put(exc)
+        finally:
+            q.put(None)  # sentinel — always fires
+
+    threading.Thread(target=_run, daemon=True).start()
+
+    while True:
+        try:
+            item = q.get(timeout=300)  # 5 min max per agent
+        except queue.Empty:
+            break
+
+        if item is None:
+            break
+
+        if isinstance(item, BaseException):
+            raise item
+
+        trace_str = "\n\n---\n\n".join(trace_lines)
+        item_type = item.get("type") if isinstance(item, dict) else None
+
+        if item_type == "trace":
+            trace_lines.append(item["line"])
+            trace_str = "\n\n---\n\n".join(trace_lines)
+            yield (outputs[0], outputs[1], outputs[2], None, trace_str)
+
+        elif item_type == "task":
+            handoff = item.get("handoff", "")
+            if handoff:
+                trace_lines.append(handoff)
+            outputs[completed] = item["content"]
+            completed += 1
+            trace_str = "\n\n---\n\n".join(trace_lines)
+            yield (outputs[0], outputs[1], outputs[2], None, trace_str)
+
+        elif item_type == "metrics":
+            yield (outputs[0], outputs[1], outputs[2], item, trace_str)
 
 
 if __name__ == "__main__":

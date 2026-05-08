@@ -1,0 +1,182 @@
+[
+  {
+    "id": "G0007",
+    "name": "APT28",
+    "aliases": ["Fancy Bear", "STRONTIUM", "Sofacy"],
+    "sectors": ["government", "defense", "aerospace", "energy", "media"],
+    "products": ["microsoft", "windows", "exchange", "vpn", "cisco", "fortigate", "palo alto"],
+    "ttps": ["T1190", "T1078", "T1566", "T1210", "T1071", "T1059"],
+    "notes": "Russian GRU unit. Focuses on espionage and data exfiltration. Known for credential harvesting and lateral movement through enterprise networks."
+  },
+  {
+    "id": "G0016",
+    "name": "APT29",
+    "aliases": ["Cozy Bear", "Midnight Blizzard", "NOBELIUM", "The Dukes"],
+    "sectors": ["government", "healthcare", "technology", "think tanks", "ngos"],
+    "products": ["microsoft", "solarwinds", "okta", "citrix", "pulse secure", "vmware"],
+    "ttps": ["T1190", "T1195", "T1078", "T1550", "T1071", "T1027"],
+    "notes": "Russian SVR unit. Highly sophisticated supply-chain compromise specialist. Responsible for SolarWinds SUNBURST. Patient, long-dwell intrusions."
+  },
+  {
+    "id": "G0032",
+    "name": "Lazarus Group",
+    "aliases": ["HIDDEN COBRA", "Guardians of Peace", "APT38"],
+    "sectors": ["finance", "cryptocurrency", "defense", "media", "healthcare"],
+    "products": ["exchange", "windows", "apache", "log4j", "citrix"],
+    "ttps": ["T1190", "T1059", "T1486", "T1070", "T1071", "T1055"],
+    "notes": "North Korean state-sponsored group. Primarily motivated by financial theft (SWIFT heists, crypto exchanges) and espionage. Deploys ransomware and wipers."
+  },
+  {
+    "id": "G0010",
+    "name": "Turla",
+    "aliases": ["Waterbug", "VENOMOUS BEAR", "Snake", "Uroburos"],
+    "sectors": ["government", "military", "embassies", "research"],
+    "products": ["windows", "exchange", "iis", "apache", "cisco", "juniper"],
+    "ttps": ["T1190", "T1078", "T1071", "T1090", "T1027", "T1068"],
+    "notes": "Russian FSB. Exceptional stealth and persistence. Known for using compromised satellite links as C2. Long-term cyber espionage operations."
+  },
+  {
+    "id": "G0125",
+    "name": "HAFNIUM",
+    "aliases": ["Silk Typhoon"],
+    "sectors": ["defense", "law firms", "think tanks", "ngos", "research", "infectious disease"],
+    "products": ["exchange", "microsoft", "iis", "windows"],
+    "ttps": ["T1190", "T1505", "T1003", "T1560", "T1048", "T1078"],
+    "notes": "Chinese state-sponsored. Exploited ProxyLogon/ProxyShell Exchange vulnerabilities at scale. Targets US-based entities for intelligence collection."
+  },
+  {
+    "id": "G0096",
+    "name": "APT41",
+    "aliases": ["Winnti", "Barium", "Double Dragon", "Wicked Panda"],
+    "sectors": ["technology", "healthcare", "telecom", "gaming", "finance", "government"],
+    "products": ["cisco", "citrix", "pulse secure", "zoho", "exchange", "vmware", "netgear"],
+    "ttps": ["T1190", "T1195", "T1078", "T1059", "T1486", "T1055"],
+    "notes": "Chinese state-sponsored with a dual mandate — espionage and financial crime. Rapid exploitation of newly disclosed CVEs. Prolific and versatile."
+  },
+  {
+    "id": "G0050",
+    "name": "APT32",
+    "aliases": ["OceanLotus", "SeaLotus", "Cobalt Kitty"],
+    "sectors": ["government", "media", "manufacturing", "hospitality", "real estate"],
+    "products": ["windows", "office", "chrome", "wordpress", "apache"],
+    "ttps": ["T1190", "T1566", "T1059", "T1071", "T1027", "T1083"],
+    "notes": "Vietnamese state-sponsored. Targets regional neighbors and dissidents. Sophisticated spear-phishing and watering-hole campaigns."
+  },
+  {
+    "id": "G0035",
+    "name": "Sandworm Team",
+    "aliases": ["Voodoo Bear", "ELECTRUM", "Telebots"],
+    "sectors": ["energy", "government", "critical infrastructure", "media"],
+    "products": ["windows", "scada", "fortinet", "cisco", "linux", "kyivstar"],
+    "ttps": ["T1190", "T1059", "T1486", "T1485", "T1014", "T1071"],
+    "notes": "Russian GRU Unit 74455. Responsible for NotPetya and Ukraine power grid attacks. Specialises in destructive operations against critical infrastructure."
+  },
+  {
+    "id": "G0102",
+    "name": "Wizard Spider",
+    "aliases": ["UNC1878", "Gold Blackburn", "Ryuk group"],
+    "sectors": ["healthcare", "finance", "education", "government", "manufacturing"],
+    "products": ["windows", "exchange", "rdp", "citrix", "vpn", "fortinet"],
+    "ttps": ["T1190", "T1078", "T1486", "T1059", "T1070", "T1021"],
+    "notes": "Russian financially motivated group. Operates TrickBot, Conti, and Ryuk ransomware. Targets high-value victims via initial access brokers."
+  },
+  {
+    "id": "G0030",
+    "name": "Volt Typhoon",
+    "aliases": ["Bronze Silhouette", "VANGUARD PANDA"],
+    "sectors": ["critical infrastructure", "communications", "energy", "transportation", "water"],
+    "products": ["cisco", "fortinet", "netgear", "sonicwall", "ivanti", "pulse secure", "f5"],
+    "ttps": ["T1190", "T1078", "T1090", "T1133", "T1021", "T1003"],
+    "notes": "Chinese state-sponsored. Pre-positions in US critical infrastructure for potential disruption. Uses living-off-the-land techniques and compromised SOHO devices as proxies."
+  },
+  {
+    "id": "G0140",
+    "name": "Scattered Spider",
+    "aliases": ["0ktapus", "UNC3944", "Starfraud"],
+    "sectors": ["technology", "gaming", "hospitality", "retail", "telecommunications"],
+    "products": ["okta", "azure", "aws", "microsoft", "vmware", "sharepoint"],
+    "ttps": ["T1190", "T1566", "T1078", "T1621", "T1550", "T1486"],
+    "notes": "English-speaking financially motivated group. Masters of social engineering and MFA bypass. Responsible for MGM and Caesars attacks."
+  },
+  {
+    "id": "G0082",
+    "name": "APT38",
+    "aliases": ["Stardust Chollima", "BlueNoroff"],
+    "sectors": ["finance", "banking", "cryptocurrency", "swift"],
+    "products": ["linux", "windows", "swift", "banking software"],
+    "ttps": ["T1190", "T1059", "T1486", "T1485", "T1070", "T1071"],
+    "notes": "North Korean financial operations arm of Lazarus. Specialises in SWIFT heists and banking system intrusions. Deployes destructive malware post-exfiltration."
+  },
+  {
+    "id": "G0064",
+    "name": "APT33",
+    "aliases": ["Elfin", "Refined Kitten", "HOLMIUM"],
+    "sectors": ["aerospace", "energy", "petrochem", "defense", "government"],
+    "products": ["exchange", "windows", "vpn", "pulse secure", "citrix"],
+    "ttps": ["T1190", "T1566", "T1078", "T1059", "T1071", "T1486"],
+    "notes": "Iranian state-sponsored. Targets aviation and energy sectors. Deploys Shamoon and other destructive malware. Also operates ransomware campaigns."
+  },
+  {
+    "id": "G0003",
+    "name": "APT1",
+    "aliases": ["Comment Crew", "Comment Group", "Byzantine Candor"],
+    "sectors": ["aerospace", "energy", "defense", "technology", "telecom", "media"],
+    "products": ["windows", "outlook", "vpn", "cisco", "web applications"],
+    "ttps": ["T1190", "T1566", "T1059", "T1078", "T1071", "T1560"],
+    "notes": "Chinese PLA Unit 61398. Large-scale, systematic IP theft from US companies. Focused on 20 strategic industries. Known for years-long persistent access."
+  },
+  {
+    "id": "G0077",
+    "name": "Gamaredon Group",
+    "aliases": ["Primitive Bear", "ACTINIUM", "Armageddon"],
+    "sectors": ["government", "military", "law enforcement", "ngo"],
+    "products": ["windows", "office", "telegram", "outlook"],
+    "ttps": ["T1190", "T1566", "T1059", "T1071", "T1027", "T1547"],
+    "notes": "Russian FSB unit targeting Ukraine. High volume, lower sophistication. Persistent spear-phishing and USB-based malware distribution."
+  },
+  {
+    "id": "G0090",
+    "name": "INDRIK SPIDER",
+    "aliases": ["Evil Corp", "Dridex gang"],
+    "sectors": ["finance", "banking", "insurance", "government"],
+    "products": ["windows", "rdp", "citrix", "exchange", "vpn"],
+    "ttps": ["T1190", "T1078", "T1486", "T1059", "T1070", "T1055"],
+    "notes": "Russian financially motivated group under OFAC sanctions. Operates BitPaymer, WastedLocker, Hades ransomware. Recently targeting critical infrastructure."
+  },
+  {
+    "id": "G0106",
+    "name": "Rocke Group",
+    "aliases": ["Iron Group"],
+    "sectors": ["cloud", "technology", "mining"],
+    "products": ["linux", "docker", "kubernetes", "redis", "hadoop", "apache"],
+    "ttps": ["T1190", "T1059", "T1496", "T1068", "T1070", "T1027"],
+    "notes": "Chinese-speaking cryptomining and cloud-targeting group. Exploits publicly exposed services and container escapes. Deploys rootkits to hide mining activity."
+  },
+  {
+    "id": "G0139",
+    "name": "TeamTNT",
+    "aliases": [],
+    "sectors": ["cloud", "container", "cryptocurrency"],
+    "products": ["docker", "kubernetes", "aws", "redis", "linux", "weave scope"],
+    "ttps": ["T1190", "T1059", "T1496", "T1078", "T1552", "T1070"],
+    "notes": "Specialises in cloud and container exploitation for cryptomining and credential theft. Targets exposed Docker APIs and Kubernetes clusters."
+  },
+  {
+    "id": "G0112",
+    "name": "Tortoiseshell",
+    "aliases": ["Imperial Kitten", "TA456"],
+    "sectors": ["defense", "military", "it service providers"],
+    "products": ["windows", "linux", "apache", "php", "web applications"],
+    "ttps": ["T1190", "T1195", "T1059", "T1071", "T1027", "T1566"],
+    "notes": "Iranian state-sponsored. Targets IT service providers to reach downstream victims (supply-chain). Uses fake social media profiles for initial access."
+  },
+  {
+    "id": "G0046",
+    "name": "FIN7",
+    "aliases": ["Carbanak group", "ELBRUS", "Sangria Tempest"],
+    "sectors": ["retail", "hospitality", "finance", "restaurants", "healthcare"],
+    "products": ["windows", "pos systems", "exchange", "rdp", "citrix"],
+    "ttps": ["T1190", "T1566", "T1059", "T1055", "T1071", "T1486"],
+    "notes": "Financially motivated Eastern European group. Pioneered CARBANAK malware for banking fraud. Evolved to ransomware (REVIL, BlackMatter) and data extortion."
+  }
+]

@@ -1,4 +1,4 @@
-"""The Chaos Gremlin — Attack Path Simulator.
+"""The Adversary — Attack Path Simulator.
 
 Takes vulnerability intel and reasons through how an attacker would exploit it.
 Red team brain in a blue team body.
@@ -7,10 +7,11 @@ Red team brain in a blue team body.
 from crewai import Agent, LLM
 
 from socrates.config import LLAMA_BASE_URL, LLAMA_MODEL_NAME, VLLM_API_KEY
+from socrates.tools.threat_actor_tool import ThreatActorTool
 
 
-def create_gremlin() -> Agent:
-    """Create the Chaos Gremlin agent for attack path simulation."""
+def create_adversary() -> Agent:
+    """Create the Adversary agent for attack path simulation."""
     llm = LLM(
         model=f"openai/{LLAMA_MODEL_NAME}",
         base_url=LLAMA_BASE_URL,
@@ -35,6 +36,6 @@ def create_gremlin() -> Agent:
             "You NEVER attempt actual exploitation — you simulate and reason only."
         ),
         llm=llm,
-        tools=[],
+        tools=[ThreatActorTool()],
         verbose=True,
     )
