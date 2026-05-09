@@ -1,6 +1,6 @@
 # 🏛️ SOCrates
 
-> *The wisest analyst in your SOC — and it never sleeps.*
+> *Every CVE deserves an interrogation.*
 
 **SOCrates** is an autonomous Security Operations Center analyst. Drop in a CVE ID and it fetches live threat intel, identifies the APT groups known to exploit that vendor, simulates the full attack kill chain with real tool names, maps every phase to MITRE ATT&CK v16, and generates a production-ready incident response report — complete with a validated Sigma detection rule and effort-labeled remediation steps.
 
@@ -225,4 +225,4 @@ MIT
 ---
 
 *Built by **git happens** for the AMD x LabLab.ai Developer Hackathon, May 2026.*
-*"The unexamined vulnerability is not worth ignoring."*
+*"Every CVE deserves an interrogation."*
