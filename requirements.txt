@@ -1,4 +1,4 @@
-crewai[litellm]==1.14.4
+crewai==1.14.4
 crewai-tools>=0.38.0
 gradio>=5.0.0
 httpx>=0.27.0

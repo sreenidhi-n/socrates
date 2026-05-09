@@ -3,8 +3,7 @@ title: SOCrates
 emoji: 🏛️
 colorFrom: blue
 colorTo: indigo
-sdk: gradio
-sdk_version: 6.14.0
+sdk: docker
 app_file: app.py
 pinned: false
 license: mit
