@@ -16,6 +16,7 @@ def create_coroner() -> Agent:
         model=f"openai/{QWEN_MODEL_NAME}",
         base_url=QWEN_BASE_URL,
         api_key=VLLM_API_KEY,
+        max_retries=3,
     )
 
     return Agent(

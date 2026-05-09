@@ -16,6 +16,7 @@ def create_adversary() -> Agent:
         model=f"openai/{LLAMA_MODEL_NAME}",
         base_url=LLAMA_BASE_URL,
         api_key=VLLM_API_KEY,
+        max_retries=3,
     )
 
     return Agent(

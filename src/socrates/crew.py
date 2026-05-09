@@ -75,8 +75,11 @@ def _format_step(output: Any) -> str:
         else:
             # Raw string output — clean and truncate
             raw = _ANSI_RE.sub("", str(output)).strip()
-            # Skip pure ANSI noise
+            # Skip pure ANSI noise and raw CrewAI object reprs (ToolResult,
+            # AgentFinish) — these duplicate info already shown in formatted lines
             if not raw or len(raw) < 5:
+                return ""
+            if raw.startswith(("ToolResult(", "AgentFinish(", "AgentAction(")):
                 return ""
             text = raw[:400]
 
@@ -282,9 +285,10 @@ def run_streaming(
 
     def _on_task(task_output: Any) -> None:
         nonlocal completed
-        # Insert a narrative handoff line between agents
+        # Use .raw for full output — str(TaskOutput) returns a truncated summary
+        content = getattr(task_output, "raw", None) or str(task_output)
         handoff = _HANDOFF_MSGS[completed] if completed < len(_HANDOFF_MSGS) else ""
-        q.put({"type": "task", "content": str(task_output), "handoff": handoff})
+        q.put({"type": "task", "content": content, "handoff": handoff})
 
     def _on_step(step_output: Any) -> None:
         line = _format_step(step_output)
@@ -300,7 +304,13 @@ def run_streaming(
             tokens = 0
             if hasattr(result, "token_usage") and result.token_usage:
                 tokens = getattr(result.token_usage, "total_tokens", 0)
-            q.put({"type": "metrics", "elapsed": elapsed, "tokens": tokens})
+            # Capture definitive full outputs from kickoff result — task_callback
+            # may receive truncated TaskOutput objects depending on CrewAI version
+            final_outputs = []
+            for to in result.tasks_output or []:
+                final_outputs.append(getattr(to, "raw", None) or str(to))
+            q.put({"type": "metrics", "elapsed": elapsed, "tokens": tokens,
+                   "final_outputs": final_outputs})
         except Exception as exc:
             q.put(exc)
         finally:
@@ -338,6 +348,10 @@ def run_streaming(
             yield (outputs[0], outputs[1], outputs[2], None, trace_str)
 
         elif item_type == "metrics":
+            # Override with definitive full content from kickoff result
+            for i, content in enumerate(item.get("final_outputs") or []):
+                if i < len(outputs) and content:
+                    outputs[i] = content
             yield (outputs[0], outputs[1], outputs[2], item, trace_str)
 
 

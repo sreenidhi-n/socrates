@@ -97,7 +97,7 @@ def build_app() -> gr.Blocks:
         gr.Markdown(
             """
             # 🏛️ SOCrates
-            ### *The wisest analyst in your SOC — and it never sleeps.*
+            ### *Every CVE deserves an interrogation.*
 
             Enter a CVE ID (e.g., `CVE-2024-3400`) or a keyword to search for vulnerabilities.
             SOCrates fetches live threat intel, simulates the full attack kill chain,
@@ -158,12 +158,8 @@ def build_app() -> gr.Blocks:
                 gr.Markdown(
                     "*Live agent reasoning — tool calls, intermediate thoughts, and handoffs between agents.*"
                 )
-                trace_output = gr.Textbox(
+                trace_output = gr.Markdown(
                     value="*(trace will appear here during analysis...)*",
-                    lines=25,
-                    max_lines=60,
-                    interactive=False,
-                    label="",
                 )
 
         _outputs = [

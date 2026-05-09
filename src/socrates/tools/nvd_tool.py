@@ -78,13 +78,13 @@ def _get_kev_entry(cve_id: str) -> dict | None:
     now = time.time()
     if not _kev_cache or (now - _kev_cache_ts) > _KEV_TTL:
         try:
-            resp = httpx.get(_KEV_URL, timeout=10.0)
+            resp = httpx.get(_KEV_URL, timeout=15.0)
             resp.raise_for_status()
             data = resp.json()
             _kev_cache = {v["cveID"]: v for v in data.get("vulnerabilities", [])}
             _kev_cache_ts = now
         except Exception:
-            pass  # fail silently — KEV enrichment is best-effort
+            pass  # keep stale cache if populated; silently skip if not
     return _kev_cache.get(cve_id.upper())
 
 
