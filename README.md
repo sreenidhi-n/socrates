@@ -1,15 +1,3 @@
----
-title: SOCrates
-emoji: 🏛️
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_file: app.py
-pinned: false
-license: mit
-short_description: Autonomous SOC analyst — CVE in, IR report out
----
-
 # 🏛️ SOCrates
 
 > *Every CVE deserves an interrogation.*
