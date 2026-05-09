@@ -13,7 +13,7 @@ from socrates.tools.mitre_tool import MITRELookupTool
 def create_coroner() -> Agent:
     """Create the Coroner agent for IR report generation."""
     llm = LLM(
-        model=f"openai/{QWEN_MODEL_NAME}",
+        model=f"hosted_vllm/{QWEN_MODEL_NAME}",
         base_url=QWEN_BASE_URL,
         api_key=VLLM_API_KEY,
         max_retries=3,

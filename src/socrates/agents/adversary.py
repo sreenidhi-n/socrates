@@ -13,7 +13,7 @@ from socrates.tools.threat_actor_tool import ThreatActorTool
 def create_adversary() -> Agent:
     """Create the Adversary agent for attack path simulation."""
     llm = LLM(
-        model=f"openai/{LLAMA_MODEL_NAME}",
+        model=f"hosted_vllm/{LLAMA_MODEL_NAME}",
         base_url=LLAMA_BASE_URL,
         api_key=VLLM_API_KEY,
         max_retries=3,

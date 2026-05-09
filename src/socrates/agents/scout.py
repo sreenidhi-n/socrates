@@ -13,7 +13,7 @@ from socrates.tools.nvd_tool import NVDSearchTool
 def create_scout() -> Agent:
     """Create the Scout agent for threat intelligence collection."""
     llm = LLM(
-        model=f"openai/{LLAMA_MODEL_NAME}",
+        model=f"hosted_vllm/{LLAMA_MODEL_NAME}",
         base_url=LLAMA_BASE_URL,
         api_key=VLLM_API_KEY,
         max_retries=3,
