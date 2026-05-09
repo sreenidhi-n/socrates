@@ -17,6 +17,14 @@ from socrates.agents.scout import create_scout
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
+# CrewAI injects "JUST THE FINAL ANSWER IN THE REQUIRED FORMAT:" into task prompts.
+# Smaller LLMs sometimes echo this boilerplate at the start of their response.
+# Strip everything up to and including that marker.
+_BOILERPLATE_RE = re.compile(
+    r".*?JUST THE FINAL ANSWER IN THE REQUIRED FORMAT:\s*",
+    re.DOTALL | re.IGNORECASE,
+)
+
 # Map tool names to human-readable narrative labels
 _TOOL_LABELS = {
     "nvd_cve_search": "NVD API",
@@ -32,6 +40,12 @@ _AGENT_LABELS = {
     "coroner": "📋 Coroner",
     "adversary": "☠️ Adversary",
 }
+
+
+def _clean_output(text: str) -> str:
+    """Strip CrewAI boilerplate that models sometimes echo at the start of their response."""
+    cleaned = _BOILERPLATE_RE.sub("", text, count=1)
+    return cleaned.strip() if cleaned.strip() else text.strip()
 
 
 def _agent_label(output: Any) -> str:
@@ -279,14 +293,14 @@ def run_streaming(
 
     _HANDOFF_MSGS = [
         "🔍 **Scout** finished intel gathering → handing brief to ☠️ Adversary",
-        "☠️ **Chaos Adversary** finished kill chain simulation → handing to 📋 Coroner",
+        "☠️ **Adversary** finished kill chain simulation → handing to 📋 Coroner",
         "📋 **Coroner** finished IR report → analysis complete ✅",
     ]
 
     def _on_task(task_output: Any) -> None:
         nonlocal completed
         # Use .raw for full output — str(TaskOutput) returns a truncated summary
-        content = getattr(task_output, "raw", None) or str(task_output)
+        content = _clean_output(getattr(task_output, "raw", None) or str(task_output))
         handoff = _HANDOFF_MSGS[completed] if completed < len(_HANDOFF_MSGS) else ""
         q.put({"type": "task", "content": content, "handoff": handoff})
 
@@ -308,7 +322,7 @@ def run_streaming(
             # may receive truncated TaskOutput objects depending on CrewAI version
             final_outputs = []
             for to in result.tasks_output or []:
-                final_outputs.append(getattr(to, "raw", None) or str(to))
+                final_outputs.append(_clean_output(getattr(to, "raw", None) or str(to)))
             q.put({"type": "metrics", "elapsed": elapsed, "tokens": tokens,
                    "final_outputs": final_outputs})
         except Exception as exc:
