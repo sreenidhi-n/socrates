@@ -3,6 +3,10 @@
 Entry point for the Hugging Face Space deployment.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
